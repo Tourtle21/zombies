@@ -13,9 +13,17 @@ var speed = 5;
 var started = false;
 var health = 100;
 var zombieCount = 1;
-var waitingTime = 2;
+var waitingTime = 1;
 
 var zombieSize = 50;
+var zombiesLeft = [];
+var zombiesTop = [];
+var zombiesDirectionX = [];
+var zombiesDirectionY = [];
+var zombieSpeed = 3;
+
+spawnerPositionsX = [gameWidth / 2];
+spawnerPositionsY = [-50];
 
 var backgroundLeft = window.innerWidth / 2 - characterWidth/2;
 var backgroundTop = window.innerHeight / 2 - characterHeight/2;
@@ -25,6 +33,11 @@ document.getElementById("character").style.height = characterHeight + "px";
 document.getElementById("game").style.width = gameWidth + "px";
 document.getElementById("game").style.height = gameHeight + "px";
 document.getElementsByClassName("healthBar")[0].style.width = health + "%";
+for (var i = 0; i < 6; i++) {
+  spawner = document.getElementsByClassName("spawner")[i];
+  spawner.style.left = spawnerPositionsX[i];
+  spawner.style.top = spawnerPositionsY[i];
+}
 
 setInterval(function() {
   game = document.getElementById("game");
@@ -52,12 +65,18 @@ setInterval(function() {
     document.getElementById("game").removeChild(document.getElementById("starting"));
     countDown();
   }
+  document.getElementsByClassName("healthBar")[0].style.width = health + "%";
   if (health <= 30) {
     document.getElementsByClassName("healthBar")[0].style.background = "red";
   } else if (health <= 50) {
     document.getElementsByClassName("healthBar")[0].style.background = "#FFDC04";
   } else {
     document.getElementsByClassName("healthBar")[0].style.background = "#0DBF00";
+  }
+
+  if (document.getElementsByClassName("zombie").length > 0) {
+    moveZombies();
+    zombieCollision();
   }
 
   game.style.left = backgroundLeft + "px";
@@ -112,9 +131,54 @@ function spawnZombies() {
     zombie.style.width = zombieSize + "px";
     zombie.style.background = "#1B7F00";
     zombie.style.borderRadius = "50%";
-    zombie.style.left = "10px";
-    zombie.style.top = "10px";
-    zombie.innerHTML = "<div class='health'><div class='healthBar zombie'></div></div>"
+    zombie.style.position = "absolute";
+    zombie.style.left = -zombieSize + "px";
+    zombie.style.top = -zombieSize + "px";
+    zombie.innerHTML = "<div class='health'><div class='healthBar zombieType'></div></div>"
+    zombiesLeft.push(-zombieSize);
+    zombiesTop.push(-zombieSize);
+    zombiesDirectionX.push(0);
+    zombiesDirectionY.push(0);
     document.getElementById("game").append(zombie);
+  }
+}
+function moveZombies() {
+  for (var i = 0; i < document.getElementsByClassName("zombie").length; i++) {
+    newZombie = document.getElementsByClassName("zombie")[i];
+    var x1 = zombiesLeft[i];
+    var y1 = zombiesTop[i];
+    var x2 = characterLeft;
+    var y2 = characterTop;
+
+    moveLeft = x2 - x1;
+    moveTop = y2 - y1;
+
+    distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    zombiesDirectionX[i] = moveLeft / distance * zombieSpeed
+    zombiesDirectionY[i] = moveTop / distance * zombieSpeed;
+    zombiesLeft[i] += zombiesDirectionX[i];
+    zombiesTop[i] += zombiesDirectionY[i];
+
+    newZombie.style.left = zombiesLeft[i] + "px";
+    newZombie.style.top = zombiesTop[i] + "px";
+  }
+}
+function zombieCollision() {
+  for (var i = 0; i < document.getElementsByClassName("zombie").length; i++) {
+    newZombie = document.getElementsByClassName("zombie")[i];
+    var x1 = zombiesLeft[i];
+    var y1 = zombiesTop[i];
+    var x2 = characterLeft;
+    var y2 = characterTop;
+    var r1 = zombieSize / 2;
+    var r2 = characterWidth / 2;
+
+    if ((x2-x1)**2 + (y1-y2)**2 <= (r1+r2)**2) {
+      characterLeft += zombiesDirectionX[i] * 10;
+      characterTop += zombiesDirectionY[i] * 10;
+      backgroundLeft -= zombiesDirectionX[i] * 10;
+      backgroundTop -= zombiesDirectionY[i] * 10;
+      health -= 5;
+    }
   }
 }
