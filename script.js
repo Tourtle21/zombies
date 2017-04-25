@@ -35,8 +35,8 @@ document.getElementById("game").style.height = gameHeight + "px";
 document.getElementsByClassName("healthBar")[0].style.width = health + "%";
 for (var i = 0; i < 6; i++) {
   spawner = document.getElementsByClassName("spawner")[i];
-  spawner.style.left = spawnerPositionsX[i];
-  spawner.style.top = spawnerPositionsY[i];
+  spawner.style.left = "-50px";
+  spawner.style.top = "-50px";
 }
 
 setInterval(function() {
@@ -145,10 +145,10 @@ function spawnZombies() {
 function moveZombies() {
   for (var i = 0; i < document.getElementsByClassName("zombie").length; i++) {
     newZombie = document.getElementsByClassName("zombie")[i];
-    var x1 = zombiesLeft[i];
-    var y1 = zombiesTop[i];
-    var x2 = characterLeft;
-    var y2 = characterTop;
+    var x1 = zombiesLeft[i] + zombieSize/2;
+    var y1 = zombiesTop[i] + zombieSize/2;
+    var x2 = characterLeft + characterWidth/2;
+    var y2 = characterTop + characterWidth/2;
 
     moveLeft = x2 - x1;
     moveTop = y2 - y1;
@@ -166,12 +166,12 @@ function moveZombies() {
 function zombieCollision() {
   for (var i = 0; i < document.getElementsByClassName("zombie").length; i++) {
     newZombie = document.getElementsByClassName("zombie")[i];
-    var x1 = zombiesLeft[i];
-    var y1 = zombiesTop[i];
-    var x2 = characterLeft;
-    var y2 = characterTop;
     var r1 = zombieSize / 2;
     var r2 = characterWidth / 2;
+    var x1 = zombiesLeft[i] + r1;
+    var y1 = zombiesTop[i] + r1;
+    var x2 = characterLeft + r2;
+    var y2 = characterTop + r2;
 
     if ((x2-x1)**2 + (y1-y2)**2 <= (r1+r2)**2) {
       characterLeft += zombiesDirectionX[i] * 10;
@@ -181,4 +181,19 @@ function zombieCollision() {
       health -= 5;
     }
   }
+}
+document.addEventListener("click", function(e) {
+  shoot();
+})
+function shoot() {
+  bullet = document.createElement("div");
+  bullet.className = "bullet";
+  bullet.style.height = "3px";
+  bullet.style.width = "3px";
+  bullet.style.background = "black";
+  bullet.style.borderRadius = "50%";
+  bullet.style.position = "absolute";
+  bullet.style.left = characterLeft + characterWidth/2 + "px";
+  bullet.style.top = characterTop + +characterWidth/2 + "px";
+  document.getElementById("game").append(bullet);
 }
