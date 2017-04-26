@@ -20,10 +20,21 @@ var zombiesLeft = [];
 var zombiesTop = [];
 var zombiesDirectionX = [];
 var zombiesDirectionY = [];
-var zombieSpeed = 3;
+var zombieSpeed = 5;
 var alive = true;
 
 var ranged = false;
+var reloaded = false;
+var arrowAngle = 0;
+var arrowDX = 0;
+var arrowDY = 0;
+var arrowLeft = 0;
+var arrowTop = 0;
+var arrowsDX = [0];
+var arrowsDY = [0];
+var arrowsLeft = [0];
+var arrowsTop =  [0];
+
 
 spawnerPositionsX = [gameWidth / 2];
 spawnerPositionsY = [-50];
@@ -247,16 +258,33 @@ function zombieCollision() {
 //   }
 // })
 function shoot() {
-  bullet = document.createElement("div");
-  bullet.className = "bullet";
-  bullet.style.height = "3px";
-  bullet.style.width = "3px";
-  bullet.style.background = "black";
-  bullet.style.borderRadius = "50%";
-  bullet.style.position = "absolute";
-  bullet.style.left = characterLeft + characterWidth/2 + "px";
-  bullet.style.top = characterTop + characterWidth/2 + "px";
-  document.getElementById("game").append(bullet);
+  console.log(arrowTop)
+  console.log(arrowLeft, arrowTop, arrowDX, arrowDY)
+  arrowsLeft.push(arrowLeft);
+  arrowsTop.push(arrowTop);
+  arrowsDX.push(arrowDX);
+  arrowsDY.push(arrowDY);
+  arrow = document.createElement("div");
+  arrow.className = "arrow";
+  arrow.style.height = "40px";
+  arrow.style.width = "4px";
+  arrow.style.background = "saddleBrown";
+  arrow.style.position = "absolute";
+  arrow.style.zIndex = "-1";
+  arrow.style.transformOrigin = "top";
+  arrow.style.transform = "rotate("+ arrowAngle + "deg)"
+  arrow.style.left = characterLeft + characterWidth/2 - 2 + "px";
+  arrow.style.top = characterTop + characterWidth/2 + "px";
+  document.getElementById("game").append(arrow);
+  moveArrow = setInterval(function() {
+    allArrows = document.getElementsByClassName("arrow");
+    for (var i = 1; i < allArrows.length; i++) {
+      arrowsLeft[i] += arrowsDX[i];
+      arrowsTop[i] += arrowsDY[i];
+      allArrows[i].style.left = arrowsLeft[i] + "px";
+      allArrows[i].style.top = arrowsTop[i] + "px";
+    }
+  }, 50)
 }
 document.getElementById("ranged").addEventListener("click", function() {
   arrow = document.createElement("div");
@@ -267,21 +295,45 @@ document.getElementById("ranged").addEventListener("click", function() {
   arrow.style.position = "absolute";
   arrow.style.zIndex = "-1";
   arrow.style.transformOrigin = "top";
+
+
   document.getElementById("game").append(arrow);
   degrees = 0;
   ranged = true;
   document.body.removeChild(document.getElementById("chooseClass"))
   document.addEventListener("mousemove", function(e) {
-    mouseX = e.clientX - window.innerWidth / 2 + characterWidth/2;
-    mouseY = e.clientY - window.innerHeight / 2 + characterWidth/2;
-    newX = mouseX - (characterLeft + characterWidth/2);
-    newY = (characterTop + characterWidth / 2) - mouseY;
-    if (newX > 0 && newY >= 0) {
-      angle = newY/newX
-      console.log(Math.atan(angle) * (180 / Math.PI))
-      // console.log(angle);
-    }
+    mouseX = e.clientX - window.innerWidth / 2;
+    mouseY = e.clientY - window.innerHeight / 2;
 
+    angle = mouseY/mouseX
+    newAngle = Math.atan(angle) / Math.PI * 180 + 90
+    var x = mouseX;
+    var y = mouseY;
+    if (mouseX > 0) {
+      newAngle -= 180;
+      x = -x;
+      y = -y;
+    }
+    arrowAngle = newAngle;
+    document.getElementsByClassName("arrow")[0].style.transform = "rotate("+ newAngle + "deg)"
+      // console.log(angle);
+      reloaded = true;
+
+
+
+      distance = x + y;
+      arrowDX = x / distance * zombieSpeed
+      arrowDY = y / distance * zombieSpeed;
+      arrowLeft = characterLeft + characterWidth/2;
+      arrowTop = characterTop + characterWidth/2;
+      console.log(arrowDX, arrowDY, arrowLeft, arrowTop)
+      console.log(arrowAngle)
+
+  })
+  document.addEventListener("click", function() {
+    if (reloaded) {
+      shoot();
+    }
   })
 })
 document.getElementById("warrior").addEventListener("click", function() {
