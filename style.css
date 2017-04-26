@@ -12,6 +12,7 @@ body {
   background: white;
   position: absolute;
   overflow: hidden;
+  z-index: -3;
 }
 #character {
   width: 50px;
@@ -27,6 +28,7 @@ body {
   height: 500px;
   width: 500px;
   background: #00FF2D;
+  z-index: -2;
 }
 .health {
   display: block;
@@ -69,4 +71,26 @@ body {
   border-radius: 50%;
   background: red;
   position: absolute;
+}
+#chooseClass {
+  height: 200px;
+  width: 500px;
+  z-index: 20;
+  margin:auto;
+  position: relative;
+  top: calc(50% - 250px);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.classes {
+  height: 180px;
+  width: 150px;
+  background: blue;
+  text-align: center;
+  color: white;
+  line-height: 180px;
+  border-radius: 5px;
+  cursor: pointer;
+  opacity: 0.7;
 }

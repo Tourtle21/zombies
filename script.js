@@ -13,7 +13,7 @@ var speed = 5;
 var started = false;
 var health = 100;
 var zombieCount = 1;
-var waitingTime = 1;
+var waitingTime = 11;
 
 var zombieSize = 50;
 var zombiesLeft = [];
@@ -21,6 +21,9 @@ var zombiesTop = [];
 var zombiesDirectionX = [];
 var zombiesDirectionY = [];
 var zombieSpeed = 3;
+var alive = true;
+
+var ranged = false;
 
 spawnerPositionsX = [gameWidth / 2];
 spawnerPositionsY = [-50];
@@ -58,7 +61,23 @@ setInterval(function() {
     backgroundTop -= speed;
     characterTop += speed;
   }
-  if (!checkCollision([0, 0, 50, 50]) && !started) {
+  if (characterLeft < 0) {
+    characterLeft = 0;
+    backgroundLeft = window.innerWidth / 2 - characterWidth/2
+  }
+  if (characterLeft > gameWidth - characterWidth) {
+    characterLeft = gameWidth - characterWidth;
+    backgroundLeft = window.innerWidth / 2 - characterWidth/2 - gameWidth;
+  }
+  if (characterTop < 0) {
+    characterTop = 0;
+    backgroundTop = window.innerHeight / 2 - characterHeight/2;
+  }
+  if (characterTop > gameHeight - characterHeight) {
+    characterTop = gameHeight - characterHeight;
+    backgroundTop = window.innerHeight / 2 - characterHeight/2 - gameHeight;
+  }
+  if (!checkCollision([0, 0, 500, 500]) && !started) {
     started = true;
     document.getElementsByClassName("health")[0].style.display = "block";
     document.getElementById("score").style.display = "block";
@@ -74,11 +93,35 @@ setInterval(function() {
     document.getElementsByClassName("healthBar")[0].style.background = "#0DBF00";
   }
 
-  if (document.getElementsByClassName("zombie").length > 0) {
+  if (document.getElementsByClassName("zombie").length > 0 && alive) {
     moveZombies();
     zombieCollision();
   }
-
+  if (health == 0) {
+    zombie = document.createElement("div");
+    zombie.className = "zombie";
+    zombie.style.height = zombieSize + "px";
+    zombie.style.width = zombieSize + "px";
+    zombie.style.background = "#1B7F00";
+    zombie.style.borderRadius = "50%";
+    zombie.style.position = "absolute";
+    zombie.style.left = characterLeft + "px";
+    zombie.style.top = characterTop + "px";
+    zombie.innerHTML = "<div class='health'><div class='healthBar zombieType'></div></div>"
+    zombiesLeft.push(-zombieSize);
+    zombiesTop.push(-zombieSize);
+    zombiesDirectionX.push(0);
+    zombiesDirectionY.push(0);
+    document.getElementById("game").append(zombie);
+    document.getElementById("game").removeChild(document.getElementById("character"));
+    alive = false;
+    health = 100;
+    speed = 20;
+  }
+  if (ranged) {
+    document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
+    document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
+  }
   game.style.left = backgroundLeft + "px";
   game.style.top = backgroundTop + "px";
   character.style.left = characterLeft + "px";
@@ -174,17 +217,35 @@ function zombieCollision() {
     var y2 = characterTop + r2;
 
     if ((x2-x1)**2 + (y1-y2)**2 <= (r1+r2)**2) {
-      characterLeft += zombiesDirectionX[i] * 10;
-      characterTop += zombiesDirectionY[i] * 10;
-      backgroundLeft -= zombiesDirectionX[i] * 10;
-      backgroundTop -= zombiesDirectionY[i] * 10;
+      characterLeft += Math.floor(zombiesDirectionX[i] * 10);
+      characterTop += Math.floor(zombiesDirectionY[i] * 10);
+      backgroundLeft -= Math.floor(zombiesDirectionX[i] * 10);
+      backgroundTop -= Math.floor(zombiesDirectionY[i] * 10);
+      if (characterLeft < 0) {
+        characterLeft = 0;
+        backgroundLeft = window.innerWidth / 2 - characterWidth/2;
+      }
+      if (characterLeft > gameWidth - characterWidth) {
+        characterLeft = gameWidth - characterWidth;
+        backgroundLeft = window.innerWidth / 2 - characterWidth/2 - gameWidth
+      }
+      if (characterTop < 0) {
+        characterTop = 0;
+        backgroundTop = window.innerHeight / 2 - characterHeight/2;
+      }
+      if (characterTop > gameHeight - characterHeight) {
+        characterTop = gameHeight - characterHeight;
+        backgroundTop = window.innerHeight / 2 - characterHeight/2 - gameHeight;
+      }
       health -= 5;
     }
   }
 }
-document.addEventListener("click", function(e) {
-  shoot();
-})
+// document.addEventListener("click", function(e) {
+//   if (alive) {
+//     shoot();
+//   }
+// })
 function shoot() {
   bullet = document.createElement("div");
   bullet.className = "bullet";
@@ -194,6 +255,42 @@ function shoot() {
   bullet.style.borderRadius = "50%";
   bullet.style.position = "absolute";
   bullet.style.left = characterLeft + characterWidth/2 + "px";
-  bullet.style.top = characterTop + +characterWidth/2 + "px";
+  bullet.style.top = characterTop + characterWidth/2 + "px";
   document.getElementById("game").append(bullet);
 }
+document.getElementById("ranged").addEventListener("click", function() {
+  arrow = document.createElement("div");
+  arrow.className = "arrow";
+  arrow.style.height = "40px";
+  arrow.style.width = "4px";
+  arrow.style.background = "saddleBrown";
+  arrow.style.position = "absolute";
+  arrow.style.zIndex = "-1";
+  arrow.style.transformOrigin = "top";
+  document.getElementById("game").append(arrow);
+  degrees = 0;
+  ranged = true;
+  document.body.removeChild(document.getElementById("chooseClass"))
+  document.addEventListener("mousemove", function(e) {
+    mouseX = e.clientX - window.innerWidth / 2 + characterWidth/2;
+    mouseY = e.clientY - window.innerHeight / 2 + characterWidth/2;
+    newX = mouseX - (characterLeft + characterWidth/2);
+    newY = (characterTop + characterWidth / 2) - mouseY;
+    if (newX > 0 && newY >= 0) {
+      angle = newY/newX
+      console.log(Math.atan(angle) * (180 / Math.PI))
+      // console.log(angle);
+    }
+
+  })
+})
+document.getElementById("warrior").addEventListener("click", function() {
+  setInterval(function() {
+  })
+  document.body.removeChild(document.getElementById("chooseClass"))
+})
+document.getElementById("builder").addEventListener("click", function() {
+  setInterval(function() {
+  })
+  document.body.removeChild(document.getElementById("chooseClass"))
+})
