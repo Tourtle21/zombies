@@ -26,6 +26,8 @@ var alive = true;
 
 var ranged = false;
 var reloaded = false;
+var reloadTime = 100;
+var amountReloaded = 0;
 var arrowSpeed = 20;
 var arrowAngle = 0;
 var addedAmount = 0;
@@ -134,6 +136,8 @@ setInterval(function() {
     speed = 20;
   }
   if (ranged) {
+    amountReloaded += 1;
+    console.log(amountReloaded); 
     document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
     document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
     arrowLeft = characterLeft + characterWidth/2;
