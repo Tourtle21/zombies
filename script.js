@@ -27,6 +27,7 @@ var alive = true;
 var ranged = false;
 var reloaded = false;
 var reloadTime = 100;
+var arrowDistance = 100;
 var amountReloaded = 0;
 var arrowSpeed = 20;
 var arrowAngle = 0;
@@ -40,6 +41,7 @@ var arrowsDY = [0];
 var arrowsLeft = [0];
 var arrowsTop =  [0];
 var addedAmounts = [0];
+var arrowsDistance = [0];
 
 
 spawnerPositionsX = [gameWidth / 2];
@@ -137,7 +139,6 @@ setInterval(function() {
   }
   if (ranged) {
     amountReloaded += 1;
-    console.log(amountReloaded); 
     document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
     document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
     arrowLeft = characterLeft + characterWidth/2;
@@ -147,6 +148,10 @@ setInterval(function() {
     allArrows = document.getElementsByClassName("arrow");
     allPointers = document.getElementsByClassName("pointer");
     for (var i = 1; i < allArrows.length; i++) {
+      arrowsDistance[i] += 1;	
+      if (arrowsDistance[i] >= arrowDistance) {
+         console.log("remove");
+      }
       arrowsLeft[i] += arrowsDX[i];
       arrowsTop[i] += arrowsDY[i];
       allArrows[i].style.left = arrowsLeft[i] + "px";
@@ -308,6 +313,7 @@ function checkArrowCollision(item, index) {
       arrowsLeft.splice(index, 1)
       arrowsTop.splice(index, 1);
       addedAmounts.splice(index, 1)
+      arrowsDistance.splice(i, 1);	
       zombieHealths[i] -= 10;
       document.getElementsByClassName("zombieType")[i].style.width = zombieHealths[i] + "%";
       document.getElementById("game").removeChild(document.getElementsByClassName("arrow")[index])
@@ -328,6 +334,7 @@ function shoot() {
   arrowsTop.push(arrowTop);
   arrowsDX.push(arrowDX);
   arrowsDY.push(arrowDY);
+  arrowsDistance.push(0);
   addedAmounts.push(addedAmount);
   arrow = document.createElement("div");
   arrow.className = "arrow";
@@ -400,7 +407,8 @@ document.getElementById("ranged").addEventListener("click", function() {
       arrowTop = characterTop + characterWidth/2;
   })
   document.addEventListener("click", function() {
-    if (reloaded) {
+    if (reloaded && amountReloaded >= reloadTime) {
+      amountReloaded = 0;	
       shoot();
     }
   })
