@@ -135,8 +135,8 @@ setInterval(function() {
     document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
     arrowLeft = characterLeft + characterWidth/2;
     arrowTop = characterTop + characterWidth/2;
-    pointer.style.left = (newDX) * 2 + (arrowLeft - 2) + "px";
-    pointer.style.top = (newDY) * 2 + (arrowTop - 2) + "px";
+    pointer.style.left = (arrowDX) * 2 + (arrowLeft - 2) + "px";
+    pointer.style.top = (arrowDY) * 2 + (arrowTop - 2) + "px";
   }
   if (document.getElementsByClassName("arrow").length > 1) {
     allArrows = document.getElementsByClassName("arrow");
@@ -304,6 +304,7 @@ document.getElementById("ranged").addEventListener("click", function() {
   pointer.style.width = "4px";
   pointer.style.background = "black";
   pointer.style.position = "absolute";
+  pointer.style.borderRadius = "50%";
   pointer.style.zIndex = "5";
   pointer.style.transformOrigin = "top";
   document.getElementById("game").append(pointer);
@@ -333,8 +334,6 @@ document.getElementById("ranged").addEventListener("click", function() {
       arrowDY = y / distance * arrowSpeed;
       arrowLeft = characterLeft + characterWidth/2;
       arrowTop = characterTop + characterWidth/2;
-      newDX = arrowDX;
-      newDY = arrowDY;
   })
   document.addEventListener("click", function() {
     if (reloaded) {
