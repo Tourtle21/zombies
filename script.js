@@ -20,11 +20,12 @@ var zombiesLeft = [];
 var zombiesTop = [];
 var zombiesDirectionX = [];
 var zombiesDirectionY = [];
-var zombieSpeed = 5;
+var zombieSpeed = 3;
 var alive = true;
 
 var ranged = false;
 var reloaded = false;
+var arrowSpeed = 20;
 var arrowAngle = 0;
 var arrowDX = 0;
 var arrowDY = 0;
@@ -132,6 +133,19 @@ setInterval(function() {
   if (ranged) {
     document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
     document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
+    arrowLeft = characterLeft + characterWidth/2;
+    arrowTop = characterTop + characterWidth/2;
+    pointer.style.left = (newDX) * 2 + (arrowLeft - 2) + "px";
+    pointer.style.top = (newDY) * 2 + (arrowTop - 2) + "px";
+  }
+  if (document.getElementsByClassName("arrow").length > 1) {
+    allArrows = document.getElementsByClassName("arrow");
+    for (var i = 1; i < allArrows.length; i++) {
+      arrowsLeft[i] += arrowsDX[i];
+      arrowsTop[i] += arrowsDY[i];
+      allArrows[i].style.left = arrowsLeft[i] + "px";
+      allArrows[i].style.top = arrowsTop[i] + "px";
+    }
   }
   game.style.left = backgroundLeft + "px";
   game.style.top = backgroundTop + "px";
@@ -258,8 +272,6 @@ function zombieCollision() {
 //   }
 // })
 function shoot() {
-  console.log(arrowTop)
-  console.log(arrowLeft, arrowTop, arrowDX, arrowDY)
   arrowsLeft.push(arrowLeft);
   arrowsTop.push(arrowTop);
   arrowsDX.push(arrowDX);
@@ -276,15 +288,6 @@ function shoot() {
   arrow.style.left = characterLeft + characterWidth/2 - 2 + "px";
   arrow.style.top = characterTop + characterWidth/2 + "px";
   document.getElementById("game").append(arrow);
-  moveArrow = setInterval(function() {
-    allArrows = document.getElementsByClassName("arrow");
-    for (var i = 1; i < allArrows.length; i++) {
-      arrowsLeft[i] += arrowsDX[i];
-      arrowsTop[i] += arrowsDY[i];
-      allArrows[i].style.left = arrowsLeft[i] + "px";
-      allArrows[i].style.top = arrowsTop[i] + "px";
-    }
-  }, 50)
 }
 document.getElementById("ranged").addEventListener("click", function() {
   arrow = document.createElement("div");
@@ -295,8 +298,15 @@ document.getElementById("ranged").addEventListener("click", function() {
   arrow.style.position = "absolute";
   arrow.style.zIndex = "-1";
   arrow.style.transformOrigin = "top";
-
-
+  pointer = document.createElement("div");
+  pointer.className = "pointer";
+  pointer.style.height = "4px";
+  pointer.style.width = "4px";
+  pointer.style.background = "black";
+  pointer.style.position = "absolute";
+  pointer.style.zIndex = "5";
+  pointer.style.transformOrigin = "top";
+  document.getElementById("game").append(pointer);
   document.getElementById("game").append(arrow);
   degrees = 0;
   ranged = true;
@@ -307,28 +317,24 @@ document.getElementById("ranged").addEventListener("click", function() {
 
     angle = mouseY/mouseX
     newAngle = Math.atan(angle) / Math.PI * 180 + 90
-    var x = mouseX;
-    var y = mouseY;
-    if (mouseX > 0) {
+
+    if (mouseX >= 0) {
       newAngle -= 180;
-      x = -x;
-      y = -y;
     }
     arrowAngle = newAngle;
     document.getElementsByClassName("arrow")[0].style.transform = "rotate("+ newAngle + "deg)"
-      // console.log(angle);
       reloaded = true;
 
 
-
-      distance = x + y;
-      arrowDX = x / distance * zombieSpeed
-      arrowDY = y / distance * zombieSpeed;
+      var x = mouseX;
+      var y = mouseY;
+      distance = Math.abs(x) + Math.abs(y);
+      arrowDX = x / distance * arrowSpeed;
+      arrowDY = y / distance * arrowSpeed;
       arrowLeft = characterLeft + characterWidth/2;
       arrowTop = characterTop + characterWidth/2;
-      console.log(arrowDX, arrowDY, arrowLeft, arrowTop)
-      console.log(arrowAngle)
-
+      newDX = arrowDX;
+      newDY = arrowDY;
   })
   document.addEventListener("click", function() {
     if (reloaded) {
