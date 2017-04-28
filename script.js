@@ -30,7 +30,8 @@ var reloaded = false;
 var reloadTime = 100;
 var arrowDistance = 10;
 var amountReloaded = 0;
-var arrowSpeed = 20;
+var arrowSpeed = 0;
+var originalSpeed = 20;
 var arrowAngle = 0;
 var addedAmount = 0;
 var arrowDX = 0;
@@ -43,7 +44,9 @@ var arrowsLeft = [0];
 var arrowsTop =  [0];
 var addedAmounts = [0];
 var arrowsDistance = [0];
-
+var arrowsSpeed = [0];
+var mouseX = window.innerWidth / 2;
+var mouseY = window.innerHeight / 2;
 
 spawnerPositionsX = [gameWidth / 2];
 spawnerPositionsY = [-50];
@@ -148,34 +151,44 @@ setInterval(function() {
     document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
     arrowLeft = characterLeft + characterWidth/2;
     arrowTop = characterTop + characterWidth/2;
+    var x = mouseX;
+    var y = mouseY;
+    distance = Math.abs(x) + Math.abs(y);
+    arrowDX = x / distance * arrowSpeed;
+    arrowDY = y / distance * arrowSpeed;
+    addedAmount = (Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2))
+    console.log((Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2)))
   }
   if (document.getElementsByClassName("arrow").length > 1) {
     allArrows = document.getElementsByClassName("arrow");
     allPointers = document.getElementsByClassName("pointer");
     for (var i = 1; i < allArrows.length; i++) {
       arrowsDistance[i] += 1;
+      arrowsDX[i] *= 0.9;
+      arrowsDY[i] *= 0.9;
       arrowsLeft[i] += arrowsDX[i];
       arrowsTop[i] += arrowsDY[i];
       allArrows[i].style.left = arrowsLeft[i] + "px";
       allArrows[i].style.top = arrowsTop[i] + "px";
       if (arrowsDX[i] > 0) {
-        allPointers[i].style.left = (arrowsDX[i]) * 2 + (arrowsLeft[i] - 2) + addedAmounts[i] + "px";
+        allPointers[i].style.left =  (arrowsLeft[i] - 2) +  (arrowsDX[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
       } else {
-        allPointers[i].style.left = (arrowsDX[i]) * 2 + (arrowsLeft[i] - 2) - addedAmounts[i] + "px";
+        allPointers[i].style.left =  (arrowsLeft[i] - 2) - (arrowsDX[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
       }
       if (arrowsDY[i] > 0) {
-        allPointers[i].style.top = (arrowsDY[i]) * 2 + (arrowsTop[i] - 2) + addedAmounts[i] + "px";
+        allPointers[i].style.top =  (arrowsTop[i] - 2)  + (arrowsDY[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
       } else {
-        allPointers[i].style.top = (arrowsDY[i]) * 2 + (arrowsTop[i] - 2) - addedAmounts[i] + "px";
+        allPointers[i].style.top =  (arrowsTop[i] - 2) - (arrowsDY[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
       }
       checkArrowCollision(allPointers[i], i);
-      if (arrowsDistance[i] >= arrowDistance) {
+      if (Math.abs(arrowsDX[i]) + Math.abs(arrowsDX[i]) <= 4 && Math.abs(arrowsDY[i]) + Math.abs(arrowsDY[i]) <= 4) {
         arrowsDX.splice(i, 1);
         arrowsDY.splice(i, 1)
         arrowsLeft.splice(i, 1)
         arrowsTop.splice(i, 1);
         addedAmounts.splice(i, 1)
         arrowsDistance.splice(i, 1);
+        arrowsSpeed.splice(i, 1);
         document.getElementById("game").removeChild(document.getElementsByClassName("arrow")[i])
       }
     }
@@ -325,6 +338,7 @@ function checkArrowCollision(item, index) {
       arrowsTop.splice(index, 1);
       addedAmounts.splice(index, 1)
       arrowsDistance.splice(index, 1);
+      arrowsSpeed.splice(index, 1);
       zombieHealths[i] -= 10;
       document.getElementsByClassName("zombieType")[i].style.width = zombieHealths[i] + "%";
       document.getElementById("game").removeChild(document.getElementsByClassName("arrow")[index])
@@ -347,6 +361,7 @@ function shoot() {
   arrowsDY.push(arrowDY);
   arrowsDistance.push(0);
   addedAmounts.push(addedAmount);
+  arrowsSpeed.push(arrowSpeed);
   arrow = document.createElement("div");
   arrow.className = "arrow";
   arrow.style.height = "40px";
@@ -363,7 +378,7 @@ function shoot() {
   pointer.className = "pointer";
   pointer.style.height = "4px";
   pointer.style.width = "4px";
-  pointer.style.background = "transparent";
+  pointer.style.background = "black";
   pointer.style.position = "absolute";
   pointer.style.borderRadius = "50%";
   pointer.style.zIndex = "5";
