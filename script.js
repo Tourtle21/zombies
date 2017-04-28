@@ -12,12 +12,14 @@ var characterHeight = 50;
 var speed = 5;
 var started = false;
 var health = 100;
-var zombieCount = 1;
+var zombieCount = 2;
 var waitingTime = 5;
 
 var zombieSize = 50;
 var zombiesLeft = [];
 var zombiesTop = [];
+var zombiePositionsX = [10, 10];
+var zombiePositionsY = [80, 10];
 var zombiesDirectionX = [];
 var zombiesDirectionY = [];
 var zombieHealths = [];
@@ -40,6 +42,8 @@ var arrowLeft = 0;
 var arrowTop = 0;
 var arrowsDX = [0];
 var arrowsDY = [0];
+var oarrowsDX = [0];
+var oarrowsDY = [0];
 var arrowsLeft = [0];
 var arrowsTop =  [0];
 var addedAmounts = [0];
@@ -144,7 +148,7 @@ setInterval(function() {
   if (ranged) {
     if (mouseDown && amountReloaded != reloadTime) {
       amountReloaded += 1;
-      arrowSpeed += 1;
+      arrowSpeed += 0.5;
       document.getElementById("loadAmount").style.width = Math.round(amountReloaded/ reloadTime * 100) + "%";
     }
     document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
@@ -156,8 +160,7 @@ setInterval(function() {
     distance = Math.abs(x) + Math.abs(y);
     arrowDX = x / distance * arrowSpeed;
     arrowDY = y / distance * arrowSpeed;
-    addedAmount = (Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2))
-    console.log((Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2)))
+    addedAmount = (20 - Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2))
   }
   if (document.getElementsByClassName("arrow").length > 1) {
     allArrows = document.getElementsByClassName("arrow");
@@ -171,19 +174,21 @@ setInterval(function() {
       allArrows[i].style.left = arrowsLeft[i] + "px";
       allArrows[i].style.top = arrowsTop[i] + "px";
       if (arrowsDX[i] > 0) {
-        allPointers[i].style.left =  (arrowsLeft[i] - 2) +  (arrowsDX[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
+        allPointers[i].style.left = (oarrowsDX[i] / arrowsSpeed[i] * originalSpeed) * 2 + (arrowsLeft[i] - 2) + addedAmounts[i] + "px";
       } else {
-        allPointers[i].style.left =  (arrowsLeft[i] - 2) - (arrowsDX[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
+        allPointers[i].style.left = (oarrowsDX[i] / arrowsSpeed[i] * originalSpeed) * 2 + (arrowsLeft[i] - 2) - addedAmounts[i] + "px";
       }
       if (arrowsDY[i] > 0) {
-        allPointers[i].style.top =  (arrowsTop[i] - 2)  + (arrowsDY[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
+        allPointers[i].style.top = (oarrowsDY[i] / arrowsSpeed[i] * originalSpeed) * 2 + (arrowsTop[i] - 2) + addedAmounts[i] + "px";
       } else {
-        allPointers[i].style.top =  (arrowsTop[i] - 2) - (arrowsDY[i] / arrowsSpeed[i] + addedAmounts[i] * 2) + "px";
+        allPointers[i].style.top = (oarrowsDY[i] / arrowsSpeed[i] * originalSpeed) * 2 + (arrowsTop[i] - 2) - addedAmounts[i] + "px";
       }
       checkArrowCollision(allPointers[i], i);
       if (Math.abs(arrowsDX[i]) + Math.abs(arrowsDX[i]) <= 4 && Math.abs(arrowsDY[i]) + Math.abs(arrowsDY[i]) <= 4) {
         arrowsDX.splice(i, 1);
         arrowsDY.splice(i, 1)
+        oarrowsDX.splice(i, 1);
+        oarrowsDY.splice(i, 1)
         arrowsLeft.splice(i, 1)
         arrowsTop.splice(i, 1);
         addedAmounts.splice(i, 1)
@@ -249,8 +254,8 @@ function spawnZombies() {
     zombie.style.left = -zombieSize + "px";
     zombie.style.top = -zombieSize + "px";
     zombie.innerHTML = "<div class='health'><div class='healthBar zombieType'></div></div>"
-    zombiesLeft.push(-zombieSize);
-    zombiesTop.push(-zombieSize);
+    zombiesLeft.push(zombiePositionsX[i]);
+    zombiesTop.push(zombiePositionsY[i]);
     zombiesDirectionX.push(0);
     zombiesDirectionY.push(0);
     zombieHealths.push(100);
@@ -272,11 +277,65 @@ function moveZombies() {
     zombiesDirectionX[i] = moveLeft / distance * zombieSpeed
     zombiesDirectionY[i] = moveTop / distance * zombieSpeed;
     zombiesLeft[i] += zombiesDirectionX[i];
+    if (collideWithEachOther(i)) {
+      zombiesLeft[i] -= zombiesDirectionX[i];
+    }
     zombiesTop[i] += zombiesDirectionY[i];
-
-
+    if (collideWithEachOther(i)) {
+      zombiesTop[i] -= zombiesDirectionY[i];
+    }
     newZombie.style.left = zombiesLeft[i] + "px";
     newZombie.style.top = zombiesTop[i] + "px";
+  }
+}
+function collideWithEachOther(zombieIndex, dx, dy, zombieHealthSub) {
+  for (var i = 0; i < document.getElementsByClassName("zombie").length; i++) {
+    if (zombieIndex != i) {
+      newZombie = document.getElementsByClassName("zombie")[i];
+      var r1 = zombieSize / 2;
+      var r2 = zombieSize / 2;
+      var x1 = zombiesLeft[i] + r1;
+      var y1 = zombiesTop[i] + r1;
+      var x2 = zombiesLeft[zombieIndex] + r2;
+      var y2 = zombiesTop[zombieIndex] + r2;
+
+      if ((x2-x1)**2 + (y1-y2)**2 <= (r1+r2)**2) {
+        console.log(zombieIndex)
+        if (dx) {
+          zombiesLeft[i] += dx;
+          zombiesTop[i] += dy
+          zombieHealths[i] -= zombieHealthSub
+          document.getElementsByClassName("zombieType")[i].style.width = zombieHealths[i] + "%";
+          return true;
+        } else {
+          return true;
+        }
+      } else if (dx) {
+        zombieHealths[i] -= zombieHealthSub
+        document.getElementsByClassName("zombieType")[i].style.width = zombieHealths[i] + "%";
+      }
+      if (zombieHealths[i] <= 0) {
+        zombiesLeft.splice(i, 1);
+        zombiesTop.splice(i, 1);
+        zombiesDirectionX.splice(i, 1);
+        zombiesDirectionY.splice(i, 1);
+        zombieHealths.splice(i, 1);
+        document.getElementById("game").removeChild(document.getElementsByClassName("zombie")[i]);
+      }
+    }
+  }
+  if (document.getElementsByClassName("zombie").length == 1 && dx) {
+    console.log("HI")
+    zombieHealths[0] -= zombieHealthSub
+    document.getElementsByClassName("zombieType")[0].style.width = zombieHealths[0] + "%";
+    if (zombieHealths[0] <= 0) {
+      zombiesLeft.splice(0, 1);
+      zombiesTop.splice(0, 1);
+      zombiesDirectionX.splice(0, 1);
+      zombiesDirectionY.splice(0, 1);
+      zombieHealths.splice(0, 1);
+      document.getElementById("game").removeChild(document.getElementsByClassName("zombie")[0]);
+    }
   }
 }
 function zombieCollision() {
@@ -328,29 +387,21 @@ function checkArrowCollision(item, index) {
     var y1 = zombiesTop[i] + r1;
     var x2 = parseInt(item.style.left.slice(0, -2)) + r2;
     var y2 = parseInt(item.style.top.slice(0, -2)) + r2;
-
-    if ((x2-x1)**2 + (y1-y2)**2 <= (r1+r2)**2) {
+    if (Math.floor((x2-x1)**2 + (y1-y2)**2) <= (r1+r2)**2) {
       zombiesLeft[i] += arrowsDX[index] * 5;
       zombiesTop[i] += arrowsDY[index] * 5;
+      collideWithEachOther(i, arrowsDX[index] * 5, arrowsDY[index] * 5, arrowsSpeed[index])
       arrowsDX.splice(index, 1);
       arrowsDY.splice(index, 1)
+      oarrowsDX.splice(index, 1);
+      oarrowsDY.splice(index, 1)
       arrowsLeft.splice(index, 1)
       arrowsTop.splice(index, 1);
       addedAmounts.splice(index, 1)
       arrowsDistance.splice(index, 1);
       arrowsSpeed.splice(index, 1);
-      zombieHealths[i] -= 10;
-      document.getElementsByClassName("zombieType")[i].style.width = zombieHealths[i] + "%";
       document.getElementById("game").removeChild(document.getElementsByClassName("arrow")[index])
       document.getElementById("game").removeChild(document.getElementsByClassName("pointer")[index])
-      if (zombieHealths[i] <= 0) {
-        zombiesLeft.splice(i, 1);
-        zombiesTop.splice(i, 1);
-        zombiesDirectionX.splice(i, 1);
-        zombiesDirectionY.splice(i, 1);
-        zombieHealths.splice(i, 1);
-        document.getElementById("game").removeChild(document.getElementsByClassName("zombie")[i]);
-      }
     }
   }
 }
@@ -359,6 +410,8 @@ function shoot() {
   arrowsTop.push(arrowTop);
   arrowsDX.push(arrowDX);
   arrowsDY.push(arrowDY);
+  oarrowsDX.push(arrowDX);
+  oarrowsDY.push(arrowDY);
   arrowsDistance.push(0);
   addedAmounts.push(addedAmount);
   arrowsSpeed.push(arrowSpeed);
@@ -378,7 +431,7 @@ function shoot() {
   pointer.className = "pointer";
   pointer.style.height = "4px";
   pointer.style.width = "4px";
-  pointer.style.background = "black";
+  pointer.style.background = "transparent";
   pointer.style.position = "absolute";
   pointer.style.borderRadius = "50%";
   pointer.style.zIndex = "5";
@@ -424,14 +477,7 @@ document.getElementById("ranged").addEventListener("click", function() {
       reloaded = true;
 
 
-      var x = mouseX;
-      var y = mouseY;
-      distance = Math.abs(x) + Math.abs(y);
-      arrowDX = x / distance * arrowSpeed;
-      arrowDY = y / distance * arrowSpeed;
-      addedAmount = (20 - Math.sqrt(arrowDX ** 2 + arrowDY ** 2))
-      arrowLeft = characterLeft + characterWidth/2;
-      arrowTop = characterTop + characterWidth/2;
+
   })
   document.addEventListener("mousedown", function() {
     mouseDown = true;
