@@ -12,14 +12,15 @@ var characterHeight = 50;
 var speed = 5;
 var started = false;
 var health = 100;
-var zombieCount = 2;
+var zombieCount = 3;
 var waitingTime = 5;
 
 var zombieSize = 50;
+var zombieHit = true;
 var zombiesLeft = [];
 var zombiesTop = [];
-var zombiePositionsX = [10, 10];
-var zombiePositionsY = [80, 10];
+var zombiePositionsX = [10, 110, 510];
+var zombiePositionsY = [10, 110, 10];
 var zombiesDirectionX = [];
 var zombiesDirectionY = [];
 var zombieHealths = [];
@@ -90,11 +91,11 @@ setInterval(function() {
   }
   if (characterLeft < 0) {
     characterLeft = 0;
-    backgroundLeft = window.innerWidth / 2 - characterWidth/2
+    backgroundLeft = window.innerWidth / 2 - characterWidth/2;
   }
   if (characterLeft > gameWidth - characterWidth) {
     characterLeft = gameWidth - characterWidth;
-    backgroundLeft = window.innerWidth / 2 - characterWidth/2 - gameWidth;
+    backgroundLeft = window.innerWidth / 2 - characterWidth/2 - gameWidth
   }
   if (characterTop < 0) {
     characterTop = 0;
@@ -277,13 +278,7 @@ function moveZombies() {
     zombiesDirectionX[i] = moveLeft / distance * zombieSpeed
     zombiesDirectionY[i] = moveTop / distance * zombieSpeed;
     zombiesLeft[i] += zombiesDirectionX[i];
-    if (collideWithEachOther(i)) {
-      zombiesLeft[i] -= zombiesDirectionX[i];
-    }
     zombiesTop[i] += zombiesDirectionY[i];
-    if (collideWithEachOther(i)) {
-      zombiesTop[i] -= zombiesDirectionY[i];
-    }
     newZombie.style.left = zombiesLeft[i] + "px";
     newZombie.style.top = zombiesTop[i] + "px";
   }
@@ -300,7 +295,6 @@ function collideWithEachOther(zombieIndex, dx, dy, zombieHealthSub) {
       var y2 = zombiesTop[zombieIndex] + r2;
 
       if ((x2-x1)**2 + (y1-y2)**2 <= (r1+r2)**2) {
-        console.log(zombieIndex)
         if (dx) {
           zombiesLeft[i] += dx;
           zombiesTop[i] += dy
@@ -325,7 +319,6 @@ function collideWithEachOther(zombieIndex, dx, dy, zombieHealthSub) {
     }
   }
   if (document.getElementsByClassName("zombie").length == 1 && dx) {
-    console.log("HI")
     zombieHealths[0] -= zombieHealthSub
     document.getElementsByClassName("zombieType")[0].style.width = zombieHealths[0] + "%";
     if (zombieHealths[0] <= 0) {
@@ -387,10 +380,22 @@ function checkArrowCollision(item, index) {
     var y1 = zombiesTop[i] + r1;
     var x2 = parseInt(item.style.left.slice(0, -2)) + r2;
     var y2 = parseInt(item.style.top.slice(0, -2)) + r2;
-    if (Math.floor((x2-x1)**2 + (y1-y2)**2) <= (r1+r2)**2) {
+    if (Math.floor((x2-x1)**2 + (y1-y2)**2) <= (r1+r2)**2 && zombieHit) {
+      zombieHit = false;
       zombiesLeft[i] += arrowsDX[index] * 5;
       zombiesTop[i] += arrowsDY[index] * 5;
-      collideWithEachOther(i, arrowsDX[index] * 5, arrowsDY[index] * 5, arrowsSpeed[index])
+      zombieHealths[i] -= arrowsSpeed[index]
+      console.log(i);
+      if (zombieHealths[i] <= 0) {
+        console.log(i);
+        zombiesLeft.splice(i, 1);
+        zombiesTop.splice(i, 1);
+        zombiesDirectionX.splice(i, 1);
+        zombiesDirectionY.splice(i, 1);
+        zombieHealths.splice(i, 1);
+        console.log(zombieHealths)
+        document.getElementById("game").removeChild(document.getElementsByClassName("zombie")[i]);
+      }
       arrowsDX.splice(index, 1);
       arrowsDY.splice(index, 1)
       oarrowsDX.splice(index, 1);
@@ -402,6 +407,7 @@ function checkArrowCollision(item, index) {
       arrowsSpeed.splice(index, 1);
       document.getElementById("game").removeChild(document.getElementsByClassName("arrow")[index])
       document.getElementById("game").removeChild(document.getElementsByClassName("pointer")[index])
+      document.getElementsByClassName("zombieType")[i].style.width = zombieHealths[i] + "%";
     }
   }
 }
@@ -481,8 +487,11 @@ document.getElementById("ranged").addEventListener("click", function() {
   })
   document.addEventListener("mousedown", function() {
     mouseDown = true;
+    speed = 1;
   })
   document.addEventListener("mouseup", function() {
+    zombieHit = true;
+    speed = 5;
     mouseDown = false;
     shoot();
     amountReloaded = 0;
