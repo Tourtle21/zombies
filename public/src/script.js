@@ -140,23 +140,28 @@ function startGame() {
   })
 
   setInterval(function() {
+    changed = false;
     game = document.getElementById("game");
     character = document.getElementById("player" + playerId);
     if (keyState["KeyA"] && characterLeft > 0) { //left
       backgroundLeft += speed;
       characterLeft -= speed;
+      changed = true;
     }
     if (keyState["KeyD"] && characterLeft < gameWidth - characterWidth) { //right
       backgroundLeft -= speed;
       characterLeft += speed;
+      changed = true;
     }
     if (keyState["KeyW"] && characterTop > 0) { //up
       backgroundTop += speed;
       characterTop -= speed;
+      changed = true;
     }
     if (keyState["KeyS"] && characterTop < gameHeight - characterHeight) { //down
       backgroundTop -= speed;
       characterTop += speed;
+      changed = true;
     }
     if (characterLeft < 0) {
       characterLeft = 0;
@@ -301,7 +306,9 @@ function startGame() {
         }
       }
     }
-    socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId]);
+    if (changed) {
+      socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId]);
+    }
   }, 50)
 
   window.addEventListener("resize", function(e) {
