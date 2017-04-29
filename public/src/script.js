@@ -129,9 +129,11 @@ function startGame() {
   socket.on('playerChanged', function(data) {
     document.getElementById("player" + data[2]).style.left = data[0] + "px";
     document.getElementById("player" + data[2]).style.top = data[1] + "px";
+    console.log("playerMOVED")
     if (data[2] == playerId) {
-      document.getElementById("game").style.left = backgroundLeft + "px";
-      document.getElementById("game").style.top = backgroundTop + "px";
+      console.log("backgroundMOVED")
+      document.getElementById("game").style.left = data[3] + "px";
+      document.getElementById("game").style.top = data[4] + "px";
       if (ranged) {
         if (mouseDown && amountReloaded != reloadTime) {
           amountReloaded += 1;
@@ -308,7 +310,7 @@ function startGame() {
       }
     }
     if (changed) {
-      socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId]);
+      socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId, backgroundLeft, backgroundTop]);
     }
   }, 50)
 
