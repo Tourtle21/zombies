@@ -1,5 +1,6 @@
 var playerId = 0;
-var socket = io.connect('http://localhost:8080/');
+//https://floating-falls-47976.herokuapp.com/
+var socket = io.connect('https://floating-falls-47976.herokuapp.com/');
 socket.on("playerConnected", function(data) {
   if (playerId == 0) {
     for (var i = 0; i < data[0].length - 1; i++) {
