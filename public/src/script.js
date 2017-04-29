@@ -129,8 +129,10 @@ function startGame() {
   socket.on('playerChanged', function(data) {
     document.getElementById("player" + data[2]).style.left = data[0] + "px";
     document.getElementById("player" + data[2]).style.top = data[1] + "px";
-    document.getElementById("game").style.left = backgroundLeft + "px";
-    document.getElementById("game").style.top = backgroundTop + "px";
+    if (data[2] == playerId) {
+      document.getElementById("game").style.left = backgroundLeft + "px";
+      document.getElementById("game").style.top = backgroundTop + "px";
+    }
   })
   socket.on('remove', function(data) {
     console.log(data);
