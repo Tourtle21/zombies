@@ -132,6 +132,56 @@ function startGame() {
     if (data[2] == playerId) {
       document.getElementById("game").style.left = backgroundLeft + "px";
       document.getElementById("game").style.top = backgroundTop + "px";
+      if (ranged) {
+        if (mouseDown && amountReloaded != reloadTime) {
+          amountReloaded += 1;
+          arrowSpeed += 0.5;
+          document.getElementById("loadAmount").style.width = Math.round(amountReloaded/ reloadTime * 100) + "%";
+        }
+        document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
+        document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
+        arrowLeft = characterLeft + characterWidth/2;
+        arrowTop = characterTop + characterWidth/2;
+        var x = mouseX;
+        var y = mouseY;
+        distance = Math.abs(x) + Math.abs(y);
+        arrowDX = x / distance * arrowSpeed;
+        arrowDY = y / distance * arrowSpeed;
+        addedAmount = (20 - Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2))
+      }
+      if (warrior) {
+        document.getElementsByClassName("sword")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
+        document.getElementsByClassName("sword")[0].style.top = characterTop + characterWidth/2 + "px";
+        swordLeft = characterLeft + characterWidth/2;
+        swordTop = characterTop + characterWidth/2;
+        var x = mouseX;
+        var y = mouseY;
+        distance = Math.abs(x) + Math.abs(y);
+        swordKnockBackX = x / distance;
+        swordKnockBackY = y / distance;
+        document.getElementsByClassName("pointer")[0].style.left = swordLeft - 2 + (swordX * 40) + "px";
+        document.getElementsByClassName("pointer")[0].style.top = swordTop - 2 + (swordY * 40) + "px";
+      }
+      if (builder) {
+        if (document.getElementsByClassName("spike")[buildings]) {
+          document.getElementsByClassName("spike")[buildings].style.left = mouseX + "px";
+          document.getElementsByClassName("spike")[buildings].style.top = mouseY + "px";
+        }
+        if (amountReloaded <= reloadTime) {
+          amountReloaded += 0.5;
+          document.getElementById("loadAmount").style.width = amountReloaded + "%";
+        }
+        for (var i = 0; i < buildings; i++) {
+          buildingHealths[i] -= 0.1;
+          document.getElementsByClassName("buildingType")[i].style.width = buildingHealths[i] + "%";
+          if (buildingHealths[i] <= 0) {
+            buildingHealths.splice(i, 1)
+            buildings -= 1;
+            document.getElementById("game").removeChild(document.getElementsByClassName("spike")[i]);
+          }
+        }
+        checkSpikeCollision();
+      }
     }
   })
   socket.on('remove', function(data) {
@@ -220,56 +270,7 @@ function startGame() {
       health = 100;
       speed = 20;
     }
-    if (ranged) {
-      if (mouseDown && amountReloaded != reloadTime) {
-        amountReloaded += 1;
-        arrowSpeed += 0.5;
-        document.getElementById("loadAmount").style.width = Math.round(amountReloaded/ reloadTime * 100) + "%";
-      }
-      document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
-      document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
-      arrowLeft = characterLeft + characterWidth/2;
-      arrowTop = characterTop + characterWidth/2;
-      var x = mouseX;
-      var y = mouseY;
-      distance = Math.abs(x) + Math.abs(y);
-      arrowDX = x / distance * arrowSpeed;
-      arrowDY = y / distance * arrowSpeed;
-      addedAmount = (20 - Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2))
-    }
-    if (warrior) {
-      document.getElementsByClassName("sword")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
-      document.getElementsByClassName("sword")[0].style.top = characterTop + characterWidth/2 + "px";
-      swordLeft = characterLeft + characterWidth/2;
-      swordTop = characterTop + characterWidth/2;
-      var x = mouseX;
-      var y = mouseY;
-      distance = Math.abs(x) + Math.abs(y);
-      swordKnockBackX = x / distance;
-      swordKnockBackY = y / distance;
-      document.getElementsByClassName("pointer")[0].style.left = swordLeft - 2 + (swordX * 40) + "px";
-      document.getElementsByClassName("pointer")[0].style.top = swordTop - 2 + (swordY * 40) + "px";
-    }
-    if (builder) {
-      if (document.getElementsByClassName("spike")[buildings]) {
-        document.getElementsByClassName("spike")[buildings].style.left = mouseX + "px";
-        document.getElementsByClassName("spike")[buildings].style.top = mouseY + "px";
-      }
-      if (amountReloaded <= reloadTime) {
-        amountReloaded += 0.5;
-        document.getElementById("loadAmount").style.width = amountReloaded + "%";
-      }
-      for (var i = 0; i < buildings; i++) {
-        buildingHealths[i] -= 0.1;
-        document.getElementsByClassName("buildingType")[i].style.width = buildingHealths[i] + "%";
-        if (buildingHealths[i] <= 0) {
-          buildingHealths.splice(i, 1)
-          buildings -= 1;
-          document.getElementById("game").removeChild(document.getElementsByClassName("spike")[i]);
-        }
-      }
-      checkSpikeCollision();
-    }
+
     if (document.getElementsByClassName("arrow").length > 1) {
       allArrows = document.getElementsByClassName("arrow");
       allPointers = document.getElementsByClassName("pointer");
