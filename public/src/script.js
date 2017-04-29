@@ -507,6 +507,7 @@ function startGame() {
           characterTop = gameHeight - characterHeight;
           backgroundTop = window.innerHeight / 2 - characterHeight/2 - gameHeight;
         }
+        socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId]);
         health -= 20;
       }
     }
