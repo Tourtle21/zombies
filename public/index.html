@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script src="socket.io/socket.io.js"></script>
+  <title>Document</title>
+  <link href="style.css" rel="stylesheet">
+</head>
+<body>
+  <div id="loadBar"><div id="loadAmount"></div></div>
+  <div id="itemBar"><div class="item"></div></div>
+  <div id="chooseClass">
+    <div class="classes" id="ranged">Ranged</div>
+    <div class="classes" id="builder">Builder</div>
+    <div class="classes" id="warrior">Warrior</div>
+  </div>
+  <div id="game">
+    <div id="starting"></div>
+    <div id="character">
+      <div class="health">
+        <div class="healthBar playerType"></div>
+      </div>
+    </div>
+    <div class="spawner"></div>
+    <div class="spawner"></div>
+    <div class="spawner"></div>
+    <div class="spawner"></div>
+    <div class="spawner"></div>
+    <div class="spawner"></div>
+  </div>
+  <div id="countDown"></div>
+  <div id="score">Money: 0</div>
+  <script src="src/script.js"></script>
+</body>
+</html>
