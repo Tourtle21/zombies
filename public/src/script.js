@@ -1,7 +1,8 @@
 var playerId = 0;
 //https://floating-falls-47976.herokuapp.com/
-var socket = io.connect('https://floating-falls-47976.herokuapp.com/');
+var socket = io.connect('http://localhost:8080/');
 socket.on("playerConnected", function(data) {
+  console.log(data);
   if (playerId == 0) {
     for (var i = 0; i < data[0].length - 1; i++) {
       div = document.createElement("div");
@@ -13,6 +14,7 @@ socket.on("playerConnected", function(data) {
       div.style.position = "absolute";
       div.style.left = data[0][i][0] + "px";
       div.style.top = data[0][i][1] + "px";
+      div.innerHTML = "<div class='health'><div class='healthBar' id='health" + data[0][i][2] + "'></div></div>"
       document.getElementById("game").append(div);
     }
     document.getElementById("character").id = "player" + data[1];
@@ -26,6 +28,7 @@ socket.on("playerConnected", function(data) {
     div.style.background = "blue";
     div.style.borderRadius = "50%";
     div.style.position = "absolute";
+    div.innerHTML = "<div class='health'><div class='healthBar' id='health" + data[1] + "'></div></div>"
     document.getElementById("game").append(div);
   }
 })
@@ -127,62 +130,21 @@ function startGame() {
   }
 
   socket.on('playerChanged', function(data) {
-    document.getElementById("player" + data[2]).style.left = data[0] + "px";
-    document.getElementById("player" + data[2]).style.top = data[1] + "px";
-    console.log("playerMOVED")
-    if (data[2] == playerId) {
-      console.log("backgroundMOVED")
-      document.getElementById("game").style.left = data[3] + "px";
-      document.getElementById("game").style.top = data[4] + "px";
-      if (ranged) {
-        if (mouseDown && amountReloaded != reloadTime) {
-          amountReloaded += 1;
-          arrowSpeed += 0.5;
-          document.getElementById("loadAmount").style.width = Math.round(amountReloaded/ reloadTime * 100) + "%";
+    console.log(data[3])
+    if (data[2] != playerId) {
+      document.getElementById("player" + data[2]).style.left = data[0] + "px";
+      document.getElementById("player" + data[2]).style.top = data[1] + "px";
+      if (data[3] == 0 || data[3]) {
+        newPercent = Math.round(data[3] / data[4]* 100);
+        if (newPercent <= 30) {
+          document.getElementById("health" + data[2]).style.background = "red";
+        } else if (newPercent <= 50) {
+          document.getElementById("health" + data[2]).style.background = "#FFDC04";
+        } else {
+          document.getElementById("health" + data[2]).style.background = "#0DBF00";
         }
-        document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
-        document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
-        arrowLeft = characterLeft + characterWidth/2;
-        arrowTop = characterTop + characterWidth/2;
-        var x = mouseX;
-        var y = mouseY;
-        distance = Math.abs(x) + Math.abs(y);
-        arrowDX = x / distance * arrowSpeed;
-        arrowDY = y / distance * arrowSpeed;
-        addedAmount = (20 - Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2))
-      }
-      if (warrior) {
-        document.getElementsByClassName("sword")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
-        document.getElementsByClassName("sword")[0].style.top = characterTop + characterWidth/2 + "px";
-        swordLeft = characterLeft + characterWidth/2;
-        swordTop = characterTop + characterWidth/2;
-        var x = mouseX;
-        var y = mouseY;
-        distance = Math.abs(x) + Math.abs(y);
-        swordKnockBackX = x / distance;
-        swordKnockBackY = y / distance;
-        document.getElementsByClassName("pointer")[0].style.left = swordLeft - 2 + (swordX * 40) + "px";
-        document.getElementsByClassName("pointer")[0].style.top = swordTop - 2 + (swordY * 40) + "px";
-      }
-      if (builder) {
-        if (document.getElementsByClassName("spike")[buildings]) {
-          document.getElementsByClassName("spike")[buildings].style.left = mouseX + "px";
-          document.getElementsByClassName("spike")[buildings].style.top = mouseY + "px";
-        }
-        if (amountReloaded <= reloadTime) {
-          amountReloaded += 0.5;
-          document.getElementById("loadAmount").style.width = amountReloaded + "%";
-        }
-        for (var i = 0; i < buildings; i++) {
-          buildingHealths[i] -= 0.1;
-          document.getElementsByClassName("buildingType")[i].style.width = buildingHealths[i] + "%";
-          if (buildingHealths[i] <= 0) {
-            buildingHealths.splice(i, 1)
-            buildings -= 1;
-            document.getElementById("game").removeChild(document.getElementsByClassName("spike")[i]);
-          }
-        }
-        checkSpikeCollision();
+        console.log(newPercent);
+        document.getElementById("health" + data[2]).style.width = newPercent + "%";
       }
     }
   })
@@ -192,7 +154,10 @@ function startGame() {
   })
 
   setInterval(function() {
-    changed = false;
+    changedBackgroundLeft = backgroundLeft;
+    changedBackgroundTop = backgroundTop;
+    changedCharacterLeft = characterLeft;
+    changedCharacterTop = characterTop;
     game = document.getElementById("game");
     character = document.getElementById("player" + playerId);
     if (keyState["KeyA"] && characterLeft > 0) { //left
@@ -238,7 +203,9 @@ function startGame() {
       document.getElementById("game").removeChild(document.getElementById("starting"));
       countDown();
     }
-    document.getElementsByClassName("healthBar")[0].style.width = Math.round(health / maxHealth * 100) + "%";
+    if (document.getElementById("player" + playerId)) {
+      document.getElementsByClassName("healthBar")[0].style.width = Math.round(health / maxHealth * 100) + "%";
+    }
     if (health <= 30) {
       document.getElementsByClassName("healthBar")[0].style.background = "red";
     } else if (health <= 50) {
@@ -272,7 +239,56 @@ function startGame() {
       health = 100;
       speed = 20;
     }
-
+    if (ranged) {
+      if (mouseDown && amountReloaded != reloadTime) {
+        amountReloaded += 1;
+        arrowSpeed += 0.5;
+        document.getElementById("loadAmount").style.width = Math.round(amountReloaded/ reloadTime * 100) + "%";
+      }
+      document.getElementsByClassName("arrow")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
+      document.getElementsByClassName("arrow")[0].style.top = characterTop + characterWidth/2 + "px";
+      arrowLeft = characterLeft + characterWidth/2;
+      arrowTop = characterTop + characterWidth/2;
+      var x = mouseX;
+      var y = mouseY;
+      distance = Math.abs(x) + Math.abs(y);
+      arrowDX = x / distance * arrowSpeed;
+      arrowDY = y / distance * arrowSpeed;
+      addedAmount = (20 - Math.sqrt((arrowDX / arrowSpeed * originalSpeed) ** 2 + (arrowDY / arrowSpeed * originalSpeed) ** 2))
+    }
+    if (warrior) {
+      document.getElementsByClassName("sword")[0].style.left = characterLeft + characterWidth/2 - 2 + "px";
+      document.getElementsByClassName("sword")[0].style.top = characterTop + characterWidth/2 + "px";
+      swordLeft = characterLeft + characterWidth/2;
+      swordTop = characterTop + characterWidth/2;
+      var x = mouseX;
+      var y = mouseY;
+      distance = Math.abs(x) + Math.abs(y);
+      swordKnockBackX = x / distance;
+      swordKnockBackY = y / distance;
+      document.getElementsByClassName("pointer")[0].style.left = swordLeft - 2 + (swordX * 40) + "px";
+      document.getElementsByClassName("pointer")[0].style.top = swordTop - 2 + (swordY * 40) + "px";
+    }
+    if (builder) {
+      if (document.getElementsByClassName("spike")[buildings]) {
+        document.getElementsByClassName("spike")[buildings].style.left = mouseX + "px";
+        document.getElementsByClassName("spike")[buildings].style.top = mouseY + "px";
+      }
+      if (amountReloaded <= reloadTime) {
+        amountReloaded += 0.5;
+        document.getElementById("loadAmount").style.width = amountReloaded + "%";
+      }
+      for (var i = 0; i < buildings; i++) {
+        buildingHealths[i] -= 0.1;
+        document.getElementsByClassName("buildingType")[i].style.width = buildingHealths[i] + "%";
+        if (buildingHealths[i] <= 0) {
+          buildingHealths.splice(i, 1)
+          buildings -= 1;
+          document.getElementById("game").removeChild(document.getElementsByClassName("spike")[i]);
+        }
+      }
+      checkSpikeCollision();
+    }
     if (document.getElementsByClassName("arrow").length > 1) {
       allArrows = document.getElementsByClassName("arrow");
       allPointers = document.getElementsByClassName("pointer");
@@ -309,8 +325,14 @@ function startGame() {
         }
       }
     }
-    if (changed) {
-      socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId, backgroundLeft, backgroundTop]);
+    if (document.getElementById("player" + playerId)) {
+      document.getElementById("player" + playerId).style.left = characterLeft + "px";
+      document.getElementById("player" + playerId).style.top = characterTop + "px";
+    }
+    document.getElementById("game").style.left = backgroundLeft + "px";
+    document.getElementById("game").style.top = backgroundTop + "px";
+    if (changedBackgroundTop != backgroundTop || changedBackgroundLeft != backgroundLeft || changedCharacterTop != characterTop || changedCharacterLeft != characterLeft) {
+      socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId]);
     }
   }, 50)
 
@@ -510,8 +532,9 @@ function startGame() {
           characterTop = gameHeight - characterHeight;
           backgroundTop = window.innerHeight / 2 - characterHeight/2 - gameHeight;
         }
-        socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId]);
         health -= 20;
+        console.log(health)
+        socket.emit("changePlayerPosition", [characterLeft, characterTop, playerId, health, maxHealth]);
       }
     }
   }
