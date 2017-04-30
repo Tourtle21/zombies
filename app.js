@@ -32,6 +32,12 @@ io.on('connection', function (socket) {
     board[i][1] = data[1];
     io.emit('playerChanged', data);
   })
+  socket.on("gameStart", function(data) {
+    io.emit("startGame");
+  })
+  socket.on("zombiesMoved", function(data) {
+    io.emit("newZombiePositions", data);
+  })
 });
 
 server.listen(process.env.PORT || 8080);

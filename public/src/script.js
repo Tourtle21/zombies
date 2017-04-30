@@ -1,9 +1,13 @@
 var playerId = 0;
+var leader = false;
 //https://floating-falls-47976.herokuapp.com/
 var socket = io.connect('http://localhost:8080/');
 socket.on("playerConnected", function(data) {
   console.log(data);
   if (playerId == 0) {
+    if (data[0].length == 1) {
+      leader = true;
+    }
     for (var i = 0; i < data[0].length - 1; i++) {
       div = document.createElement("div");
       div.id = "player" + data[0][i][2];
@@ -109,6 +113,7 @@ function startGame() {
   var spikeDamage = 5;
   var buildingHealths = [];
 
+
   spawnerPositionsX = [gameWidth / 2];
   spawnerPositionsY = [-50];
 
@@ -152,7 +157,25 @@ function startGame() {
     console.log(data);
     document.getElementById("game").removeChild(document.getElementById("player" + data));
   })
-
+  socket.on('startGame', function(data) {
+    started = true;
+    document.getElementsByClassName("health")[0].style.display = "block";
+    document.getElementById("score").style.display = "block";
+    document.getElementById("game").removeChild(document.getElementById("starting"));
+    countDown();
+  })
+  socket.on('newZombiePositions', function(data) {
+    if (!leader) {
+      for (var i = 0; i < data[0].length; i++) {
+        zombiesLeft[i] = data[0][i];
+        zombiesTop[i] = data[1][i];
+        zombiesDirectionX[i] = data[2][i];
+        zombiesDirectionY[i] = data[3][i];
+        document.getElementsByClassName("zombie")[i].style.left = zombiesLeft[i] + "px";
+        document.getElementsByClassName("zombie")[i].style.top = zombiesTop[i] + "px";
+      }
+    }
+  })
   setInterval(function() {
     changedBackgroundLeft = backgroundLeft;
     changedBackgroundTop = backgroundTop;
@@ -197,11 +220,7 @@ function startGame() {
       backgroundTop = window.innerHeight / 2 - characterHeight/2 - gameHeight;
     }
     if (!checkCollision([0, 0, 500, 500]) && !started) {
-      started = true;
-      document.getElementsByClassName("health")[0].style.display = "block";
-      document.getElementById("score").style.display = "block";
-      document.getElementById("game").removeChild(document.getElementById("starting"));
-      countDown();
+      socket.emit("gameStart");
     }
     if (document.getElementById("player" + playerId)) {
       document.getElementsByClassName("healthBar")[0].style.width = Math.round(health / maxHealth * 100) + "%";
@@ -215,7 +234,9 @@ function startGame() {
     }
 
     if (document.getElementsByClassName("zombie").length > 0 && alive) {
-      moveZombies();
+      if (leader) {
+        moveZombies();
+      }
       zombieCollision();
     }
     if (health <= 0) {
@@ -452,6 +473,7 @@ function startGame() {
       newZombie.style.left = zombiesLeft[i] + "px";
       newZombie.style.top = zombiesTop[i] + "px";
     }
+    socket.emit("zombiesMoved", [zombiesLeft, zombiesTop, zombiesDirectionX, zombiesDirectionY])
   }
   function collideWithEachOther(zombieIndex, dx, dy, zombieHealthSub) {
     for (var i = 0; i < document.getElementsByClassName("zombie").length; i++) {
